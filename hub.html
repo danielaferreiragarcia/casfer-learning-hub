@@ -32,6 +32,12 @@
     <button class="menu-toggle" id="menuToggle" aria-label="Open module menu">☰</button>
   </header>
 
+  <!-- ── PREVIEW BANNER (only visible when ?preview=true) ──────────── -->
+  <div id="previewBanner" style="display:none">
+    👁 <strong>Preview Mode</strong> — quizzes are skipped. Participants see the normal site.
+    <a href="hub.html" style="color:inherit;margin-left:1rem;text-decoration:underline">Exit preview</a>
+  </div>
+
   <!-- ── SIDEBAR OVERLAY (mobile) ────────────────────────────────── -->
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
@@ -65,6 +71,9 @@
   var pendingAnswers   = {};   // { moduleId: { questionId: optionIndex } }
 
   // ── Storage helpers ────────────────────────────────────────────
+  // ── Preview mode — activated by ?preview=true in the URL ─────
+  var PREVIEW = (new URLSearchParams(window.location.search)).get('preview') === 'true';
+
   function getUser() {
     try { return JSON.parse(localStorage.getItem('casfer_user')); }
     catch { return null; }
@@ -80,6 +89,7 @@
     return !!(getProgress()[moduleId]?.completed);
   }
   function isUnlocked(moduleIndex) {
+    if (PREVIEW) return true;
     if (moduleIndex === 0) return true;
     return isComplete(MODULES[moduleIndex - 1].id);
   }
@@ -92,6 +102,7 @@
     return MODULES.filter(function(m) { return isComplete(m.id); }).length;
   }
   function allModulesDone() {
+    if (PREVIEW) return true;
     return completedCount() === MODULES.length;
   }
   function confirmationsDone() {
@@ -214,7 +225,17 @@
       html += '<div class="quiz-complete-banner">✅ Quiz passed — this section is complete.</div>';
     } else {
       html += '<p class="quiz-instructions">' + esc(mod.quiz.instructions) + '</p>';
-      html += '<div id="quizForm">' + buildQuizHTML(mod) + '</div>';
+      if (PREVIEW) {
+        var modIndex = MODULES.findIndex(function(m) { return m.id === mod.id; });
+        var isLast   = modIndex === MODULES.length - 1;
+        html += '<div class="preview-skip-box">' +
+          '<p>👁 <strong>Preview mode</strong> — quiz is skipped so you can review the full site.</p>' +
+          '<button class="btn btn-accent btn-sm" onclick="skipQuiz(\'' + mod.id + '\',' + isLast + ')">' +
+          'Skip Quiz &amp; Continue →</button>' +
+          '</div>';
+      } else {
+        html += '<div id="quizForm">' + buildQuizHTML(mod) + '</div>';
+      }
     }
     html += '</div>';
 
@@ -468,6 +489,19 @@
     }
   }
 
+  // ── Preview: skip quiz and mark module complete ───────────────
+  function skipQuiz(moduleId, isLast) {
+    markComplete(moduleId);
+    renderSidebar();
+    updateProgress();
+    if (isLast) {
+      showFinalConfirmation();
+    } else {
+      var nextIndex = MODULES.findIndex(function(m) { return m.id === moduleId; }) + 1;
+      showModule(MODULES[nextIndex].id);
+    }
+  }
+
   // ── Completion tracking via Formspree ─────────────────────────
   function trackEvent(eventName, extraData) {
     var id = (CONFIG.formspreeId || '').trim();
@@ -568,6 +602,10 @@
     document.getElementById('headerUserName').textContent = user.firstName;
     document.getElementById('headerLogoText').textContent = CONFIG.logoText + ' Hub';
     document.title = CONFIG.programName;
+
+    if (PREVIEW) {
+      document.getElementById('previewBanner').style.display = 'block';
+    }
 
     renderSidebar();
     updateProgress();

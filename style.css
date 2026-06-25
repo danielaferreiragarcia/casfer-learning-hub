@@ -438,6 +438,25 @@ body.login-page {
 .confirmation-item.checked { border-color: var(--success); background: var(--success-light); }
 .conf-text { line-height: 1.4; }
 
+/* ── Preview mode ──────────────────────────────────────────────── */
+#previewBanner {
+  background: #7C3AED; color: #fff;
+  text-align: center; padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  position: fixed; top: var(--header-h); left: 0; right: 0;
+  z-index: 99;
+}
+body:has(#previewBanner[style*="block"]) .hub-layout { padding-top: 30px; }
+
+.preview-skip-box {
+  background: #F5F0FF; border: 2px dashed #7C3AED;
+  border-radius: var(--radius); padding: 1rem 1.2rem;
+  margin-top: 0.5rem; font-size: 0.9rem; color: #4C1D95;
+}
+.preview-skip-box p { margin-bottom: 0.6rem; }
+.btn-accent { background: #7C3AED; color: #fff; border-color: #7C3AED; }
+.btn-accent:hover { background: #6D28D9; border-color: #6D28D9; }
+
 .conf-note {
   font-size: 0.82rem; color: var(--text-muted);
   background: var(--bg); border: 1px solid var(--border);
