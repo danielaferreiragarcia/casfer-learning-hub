@@ -468,9 +468,40 @@
     }
   }
 
+  // ── Completion tracking via Formspree ─────────────────────────
+  function trackEvent(eventName, extraData) {
+    var id = (CONFIG.formspreeId || '').trim();
+    if (!id || id === 'YOUR_FORMSPREE_ID') return;  // tracking not configured
+    var user = getUser() || {};
+    var payload = Object.assign({
+      event:       eventName,
+      firstName:   user.firstName  || '',
+      lastName:    user.lastName   || '',
+      email:       user.email      || '',
+      programYear: CONFIG.programYear || '',
+      timestamp:   new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }) + ' (CT)',
+    }, extraData || {});
+    fetch('https://formspree.io/f/' + id, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body:    JSON.stringify(payload),
+    }).catch(function() {});  // silent fail — never block the user
+  }
+
   function generateCertificate() {
     localStorage.setItem('casfer_confirmations_done', 'true');
-    localStorage.setItem('casfer_certificate_date', new Date().toISOString());
+    var now = new Date().toISOString();
+    localStorage.setItem('casfer_certificate_date', now);
+
+    // ── Send completion notification ──────────────────────────
+    var user = getUser() || {};
+    var startRaw = user.startDate ? new Date(user.startDate) : null;
+    var mins = startRaw ? Math.round((new Date() - startRaw) / 60000) : null;
+    trackEvent('✅ Certificate Earned', {
+      sectionsCompleted: MODULES.length + ' of ' + MODULES.length,
+      minutesSinceStart: mins !== null ? mins + ' min' : 'unknown',
+    });
+
     window.location.href = 'certificate.html';
   }
 

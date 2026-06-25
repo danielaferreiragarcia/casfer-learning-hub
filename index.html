@@ -151,6 +151,24 @@
         programYear: CONFIG.programYear,
       };
       localStorage.setItem('casfer_user', JSON.stringify(userData));
+
+      // ── Send "started" notification to Formspree ──────────────
+      const formId = (CONFIG.formspreeId || '').trim();
+      if (formId && formId !== 'YOUR_FORMSPREE_ID') {
+        fetch('https://formspree.io/f/' + formId, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            event:       '🟡 Started Training',
+            firstName:   firstName,
+            lastName:    lastName,
+            email:       email,
+            programYear: CONFIG.programYear,
+            timestamp:   new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }) + ' (CT)',
+          }),
+        }).catch(function() {});  // silent fail — never block the user
+      }
+
       window.location.href = 'hub.html';
     });
   </script>

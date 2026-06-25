@@ -40,6 +40,16 @@ const CONFIG = {
   contactEmail:  "casfer@ttu.edu",      // ← REPLACE with real coordinator email
   contactName:   "CASFER Program Coordinator",  // ← REPLACE with real name
   logoText:      "CASFER",              // displayed in the header
+
+  // ─── COMPLETION TRACKING ───────────────────────────────────────
+  // To receive email notifications when participants start or finish:
+  //   1. Create a free account at formspree.io
+  //   2. Create a new form called "CASFER Learning Hub Tracking"
+  //   3. Copy the form ID (the short code at the end of the form URL)
+  //   4. Paste it below, replacing  YOUR_FORMSPREE_ID
+  //
+  // Leave as "YOUR_FORMSPREE_ID" to disable tracking (no emails sent).
+  formspreeId:   "YOUR_FORMSPREE_ID",   // ← REPLACE with your Formspree form ID
 };
 
 
