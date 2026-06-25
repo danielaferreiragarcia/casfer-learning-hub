@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CASFER Pre-Arrival Learning Hub — Sign In</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+
+  <div class="login-card" id="loginCard">
+
+    <!-- Brand header -->
+    <div class="login-brand">
+      <div class="login-logo">🌱</div>
+      <h1 id="programTitle">Pre-Arrival Learning Hub</h1>
+      <p class="login-org" id="orgName">Loading…</p>
+    </div>
+
+    <!-- Welcome message -->
+    <div class="login-intro">
+      Welcome! Complete this training in the week before you arrive on campus. It takes about 3–4 hours total and will prepare you for a smoother, faster start on Day 1.
+    </div>
+
+    <!-- Sign-in form (shown to new users) -->
+    <div id="newUserView">
+      <form id="loginForm" novalidate>
+
+        <div class="form-group">
+          <label for="firstName">First Name <span aria-hidden="true">*</span></label>
+          <input type="text" id="firstName" name="firstName"
+                 placeholder="Enter your first name"
+                 autocomplete="given-name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Last Name <span aria-hidden="true">*</span></label>
+          <input type="text" id="lastName" name="lastName"
+                 placeholder="Enter your last name"
+                 autocomplete="family-name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address <span aria-hidden="true">*</span></label>
+          <input type="email" id="email" name="email"
+                 placeholder="your.email@university.edu"
+                 autocomplete="email" required>
+        </div>
+
+        <div id="formError" class="hidden" role="alert"
+             style="color: var(--danger); font-size: 0.875rem; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: var(--danger-light); border-radius: 6px;">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-large login-submit">
+          Begin Training →
+        </button>
+      </form>
+    </div>
+
+    <!-- Returning user view (shown when localStorage has existing data) -->
+    <div id="returningView" class="returning-card hidden">
+      <h2 id="welcomeBackName">Welcome back!</h2>
+      <p id="returningProgress">Continue where you left off.</p>
+      <div class="btn-row">
+        <a href="hub.html" class="btn btn-primary">Continue Training →</a>
+        <button class="btn btn-secondary" onclick="startOver()">Start Over</button>
+      </div>
+    </div>
+
+    <p class="login-note">
+      Your progress is saved in this browser on this device.
+      Use the same browser each time to continue where you left off.
+    </p>
+
+  </div><!-- /.login-card -->
+
+  <script src="content.js"></script>
+  <script>
+    // ── Populate brand text from CONFIG ─────────────────────────
+    document.getElementById('programTitle').textContent = CONFIG.programName;
+    document.getElementById('orgName').textContent =
+      CONFIG.organization.replace('\n', ' · ') + ' · ' + CONFIG.institution;
+
+    // ── Check for existing session ───────────────────────────────
+    function getStoredUser() {
+      try { return JSON.parse(localStorage.getItem('casfer_user')); }
+      catch { return null; }
+    }
+    function getCompletedCount() {
+      try {
+        const p = JSON.parse(localStorage.getItem('casfer_progress') || '{}');
+        return MODULES.filter(m => p[m.id]?.completed).length;
+      } catch { return 0; }
+    }
+
+    const existing = getStoredUser();
+    if (existing) {
+      const count = getCompletedCount();
+      document.getElementById('newUserView').classList.add('hidden');
+      document.getElementById('returningView').classList.remove('hidden');
+      document.getElementById('welcomeBackName').textContent =
+        'Welcome back, ' + existing.firstName + '!';
+      document.getElementById('returningProgress').textContent =
+        count === MODULES.length
+          ? 'You have completed all ' + count + ' sections!'
+          : count > 0
+            ? 'You have completed ' + count + ' of ' + MODULES.length + ' sections.'
+            : 'You have not yet started the training.';
+    }
+
+    // ── Start-over (clear all data) ──────────────────────────────
+    function startOver() {
+      if (confirm('This will erase all your progress and your certificate. Are you sure?')) {
+        localStorage.removeItem('casfer_user');
+        localStorage.removeItem('casfer_progress');
+        localStorage.removeItem('casfer_confirmations_done');
+        localStorage.removeItem('casfer_certificate_date');
+        location.reload();
+      }
+    }
+
+    // ── Form submission ──────────────────────────────────────────
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName  = document.getElementById('lastName').value.trim();
+      const email     = document.getElementById('email').value.trim();
+      const errEl     = document.getElementById('formError');
+
+      // Basic validation
+      if (!firstName || !lastName || !email) {
+        errEl.textContent = 'Please fill in all three fields.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRx.test(email)) {
+        errEl.textContent = 'Please enter a valid email address.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      errEl.classList.add('hidden');
+
+      // Save user info and redirect to the hub
+      const userData = {
+        firstName: firstName,
+        lastName:  lastName,
+        email:     email,
+        startDate: new Date().toISOString(),
+        programYear: CONFIG.programYear,
+      };
+      localStorage.setItem('casfer_user', JSON.stringify(userData));
+      window.location.href = 'hub.html';
+    });
+  </script>
+</body>
+</html>

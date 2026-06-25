@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CASFER Pre-Arrival Learning Hub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ── HEADER ─────────────────────────────────────────────────── -->
+  <header class="hub-header">
+    <a href="index.html" class="hub-logo" title="Home">
+      <div class="hub-logo-icon">🌱</div>
+      <span class="hub-logo-text" id="headerLogoText">CASFER Hub</span>
+    </a>
+
+    <div class="header-progress">
+      <div class="progress-bar-wrap" role="progressbar"
+           aria-label="Overall progress" aria-valuemin="0" aria-valuemax="100"
+           id="progressBarWrap">
+        <div class="progress-bar-fill" id="progressBarFill" style="width:0%"></div>
+      </div>
+      <span class="progress-text" id="progressText">0 of 6 complete</span>
+    </div>
+
+    <div class="header-user">
+      <div class="header-user-icon">👤</div>
+      <span class="header-user-name" id="headerUserName"></span>
+    </div>
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Open module menu">☰</button>
+  </header>
+
+  <!-- ── SIDEBAR OVERLAY (mobile) ────────────────────────────────── -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- ── LAYOUT ────────────────────────────────────────────────────── -->
+  <div class="hub-layout">
+
+    <!-- Sidebar -->
+    <nav class="hub-sidebar" id="hubSidebar" aria-label="Module navigation">
+      <div class="sidebar-heading">Sections</div>
+      <div id="moduleList"></div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="hub-main" id="mainContent" tabindex="-1">
+      <!-- Populated by JavaScript -->
+    </main>
+
+  </div><!-- /.hub-layout -->
+
+
+  <!-- ── SCRIPTS ─────────────────────────────────────────────────── -->
+  <script src="content.js"></script>
+  <script>
+  // ================================================================
+  //  HUB APPLICATION LOGIC
+  //  (You shouldn't need to edit this file — edit content.js instead)
+  // ================================================================
+
+  // ── State ──────────────────────────────────────────────────────
+  var currentModuleId  = null;
+  var pendingAnswers   = {};   // { moduleId: { questionId: optionIndex } }
+
+  // ── Storage helpers ────────────────────────────────────────────
+  function getUser() {
+    try { return JSON.parse(localStorage.getItem('casfer_user')); }
+    catch { return null; }
+  }
+  function getProgress() {
+    try { return JSON.parse(localStorage.getItem('casfer_progress') || '{}'); }
+    catch { return {}; }
+  }
+  function saveProgress(p) {
+    localStorage.setItem('casfer_progress', JSON.stringify(p));
+  }
+  function isComplete(moduleId) {
+    return !!(getProgress()[moduleId]?.completed);
+  }
+  function isUnlocked(moduleIndex) {
+    if (moduleIndex === 0) return true;
+    return isComplete(MODULES[moduleIndex - 1].id);
+  }
+  function markComplete(moduleId) {
+    var p = getProgress();
+    p[moduleId] = { completed: true, completedAt: new Date().toISOString() };
+    saveProgress(p);
+  }
+  function completedCount() {
+    return MODULES.filter(function(m) { return isComplete(m.id); }).length;
+  }
+  function allModulesDone() {
+    return completedCount() === MODULES.length;
+  }
+  function confirmationsDone() {
+    return localStorage.getItem('casfer_confirmations_done') === 'true';
+  }
+
+  // ── Sidebar ────────────────────────────────────────────────────
+  function renderSidebar() {
+    var html = '';
+    MODULES.forEach(function(mod, i) {
+      var done     = isComplete(mod.id);
+      var unlocked = isUnlocked(i);
+      var active   = currentModuleId === mod.id;
+      var icon     = done ? '✅' : (unlocked ? '📖' : '🔒');
+      var cls      = 'sidebar-item';
+      if (done)     cls += ' complete';
+      if (!unlocked) cls += ' locked';
+      if (active)   cls += ' active';
+      var click = unlocked
+        ? 'showModule(\'' + mod.id + '\'); closeSidebar();'
+        : 'showLockedToast();';
+      html += '<div class="' + cls + '" onclick="' + click + '"' +
+              (unlocked ? '' : ' title="Complete the previous section to unlock this one"') +
+              ' role="button" tabindex="' + (unlocked ? 0 : -1) + '"' +
+              (unlocked ? ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){' + click + '}"' : '') +
+              '>' +
+              '<span class="sidebar-icon">' + icon + '</span>' +
+              '<div class="sidebar-text">' +
+              '<span class="sidebar-title">' + mod.title + '</span>' +
+              '<span class="sidebar-time">' + mod.estimatedTime + '</span>' +
+              '</div></div>';
+    });
+
+    // Final confirmation / certificate row
+    if (allModulesDone()) {
+      html += '<div class="sidebar-divider"></div>';
+      var cfDone  = confirmationsDone();
+      var cfCls   = 'sidebar-item ' + (cfDone ? 'complete' : 'unlocked');
+      var cfActive = currentModuleId === 'final';
+      if (cfActive) cfCls += ' active';
+      html += '<div class="' + cfCls + '" onclick="showFinalConfirmation(); closeSidebar();" role="button" tabindex="0">' +
+              '<span class="sidebar-icon">' + (cfDone ? '🏆' : '📋') + '</span>' +
+              '<div class="sidebar-text">' +
+              '<span class="sidebar-title">' + (cfDone ? 'Certificate Ready' : 'Final Confirmation') + '</span>' +
+              '<span class="sidebar-time">Get your certificate</span>' +
+              '</div></div>';
+    }
+
+    document.getElementById('moduleList').innerHTML = html;
+  }
+
+  function updateProgress() {
+    var count = completedCount();
+    var total = MODULES.length;
+    var pct   = Math.round((count / total) * 100);
+    document.getElementById('progressBarFill').style.width = pct + '%';
+    document.getElementById('progressBarWrap').setAttribute('aria-valuenow', pct);
+    document.getElementById('progressText').textContent = count + ' of ' + total + ' complete';
+  }
+
+  // ── Mobile sidebar open/close ──────────────────────────────────
+  document.getElementById('menuToggle').addEventListener('click', function() {
+    document.getElementById('hubSidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('open');
+  });
+  function closeSidebar() {
+    document.getElementById('hubSidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+  }
+
+  function showLockedToast() {
+    // Brief visual cue — just highlight the first locked item briefly
+    // Nothing disruptive; the lock icon already communicates the state
+  }
+
+  // ── Module rendering ───────────────────────────────────────────
+  function showModule(moduleId) {
+    currentModuleId = moduleId;
+    if (!pendingAnswers[moduleId]) pendingAnswers[moduleId] = {};
+
+    var mod      = MODULES.find(function(m) { return m.id === moduleId; });
+    var done     = isComplete(moduleId);
+    var main     = document.getElementById('mainContent');
+
+    renderSidebar();
+    updateProgress();
+
+    main.innerHTML = buildModuleHTML(mod, done);
+    main.scrollTop = 0;
+    window.scrollTo(0, 0);
+    main.focus();
+  }
+
+  function buildModuleHTML(mod, done) {
+    var html = '';
+
+    // Header
+    html += '<div class="module-header">' +
+            '<span class="module-icon">' + mod.icon + '</span>' +
+            '<div>' +
+            '<h2>' + esc(mod.title) + '</h2>' +
+            '<p class="module-tagline">' + esc(mod.tagline) + '</p>' +
+            '</div></div>';
+
+    html += '<p class="module-description">' + esc(mod.description) + '</p>';
+    html += '<p class="module-time">⏱ Estimated time: <strong>' + esc(mod.estimatedTime) + '</strong></p>';
+
+    if (done) {
+      html += '<div class="completed-banner">✅ You have completed this section!</div>';
+    }
+
+    // Resources
+    html += '<div class="resources-section"><h3>Learning Materials</h3>';
+    mod.resources.forEach(function(r) { html += buildResource(r); });
+    html += '</div>';
+
+    // Quiz
+    html += '<div class="quiz-section"><h3>Section Quiz</h3>';
+    if (done) {
+      html += '<div class="quiz-complete-banner">✅ Quiz passed — this section is complete.</div>';
+    } else {
+      html += '<p class="quiz-instructions">' + esc(mod.quiz.instructions) + '</p>';
+      html += '<div id="quizForm">' + buildQuizHTML(mod) + '</div>';
+    }
+    html += '</div>';
+
+    return html;
+  }
+
+  function buildResource(r) {
+    if (r.type === 'video')    return buildVideo(r);
+    if (r.type === 'guide')    return buildGuide(r);
+    if (r.type === 'download') return buildDownload(r);
+    return '';
+  }
+
+  function buildVideo(r) {
+    var placeholder = !r.youtubeId || r.youtubeId.indexOf('REPLACE') === 0;
+    var embed = placeholder
+      ? '<div class="video-placeholder"><p>📺 Add a YouTube video ID in <strong>content.js</strong> to embed a video here.</p></div>'
+      : '<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/' + r.youtubeId +
+        '?rel=0" frameborder="0" allowfullscreen loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>';
+    return '<div class="resource-card resource-video">' +
+           '<div class="resource-label">▶ Video</div>' +
+           '<h4>' + esc(r.title) + '</h4>' +
+           '<p>' + esc(r.description) + '</p>' +
+           embed + '</div>';
+  }
+
+  function buildGuide(r) {
+    return '<div class="resource-card resource-guide">' +
+           '<div class="resource-label">📖 Reading Guide</div>' +
+           '<h4>' + esc(r.title) + '</h4>' +
+           '<div class="guide-content">' + r.content + '</div>' +
+           '</div>';
+  }
+
+  function buildDownload(r) {
+    var isPlaceholder = !r.url || r.url === '#';
+    var btn = isPlaceholder
+      ? '<p class="placeholder-note">⚠️ ' + esc(r.note) + '</p>' +
+        '<button class="btn btn-secondary btn-sm" disabled>Download (link not yet added)</button>'
+      : '<a href="' + r.url + '" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Download ↗</a>';
+    return '<div class="resource-card resource-download">' +
+           '<div class="resource-label">📥 Download</div>' +
+           '<h4>' + esc(r.title) + '</h4>' +
+           btn + '</div>';
+  }
+
+  // ── Quiz ────────────────────────────────────────────────────────
+  function buildQuizHTML(mod) {
+    var html = '';
+    mod.quiz.questions.forEach(function(q, qi) {
+      html += '<div class="quiz-question" id="qq-' + q.id + '">';
+      html += '<p class="question-text"><strong>Question ' + (qi + 1) + ':</strong> ' + esc(q.text) + '</p>';
+      html += '<div class="question-options">';
+      q.options.forEach(function(opt, oi) {
+        html += '<label class="option-label" id="opt-' + q.id + '-' + oi + '">' +
+                '<input type="radio" name="q_' + q.id + '" value="' + oi + '" ' +
+                'onchange="recordAnswer(\'' + mod.id + '\',\'' + q.id + '\',' + oi + ')">' +
+                '<span class="option-text">' + esc(opt.text) + '</span>' +
+                '</label>';
+      });
+      html += '</div>';
+      html += '<div class="question-explanation hidden" id="exp-' + q.id + '">' + esc(q.explanation) + '</div>';
+      html += '</div>';
+    });
+    html += '<button class="btn btn-primary" id="submitBtn" onclick="submitQuiz(\'' + mod.id + '\')">Submit Answers</button>';
+    html += '<div id="quizResult" class="hidden"></div>';
+    return html;
+  }
+
+  function recordAnswer(moduleId, questionId, optionIndex) {
+    if (!pendingAnswers[moduleId]) pendingAnswers[moduleId] = {};
+    pendingAnswers[moduleId][questionId] = optionIndex;
+  }
+
+  function submitQuiz(moduleId) {
+    var mod     = MODULES.find(function(m) { return m.id === moduleId; });
+    var answers = pendingAnswers[moduleId] || {};
+    var allOk   = true;
+    var correct = 0;
+    var unanswered = 0;
+
+    mod.quiz.questions.forEach(function(q) {
+      var sel = answers[q.id];
+      var qEl = document.getElementById('qq-' + q.id);
+      var expEl = document.getElementById('exp-' + q.id);
+
+      // Disable all radio buttons for this question
+      var radios = document.querySelectorAll('input[name="q_' + q.id + '"]');
+      radios.forEach(function(r) { r.disabled = true; });
+
+      if (sel === undefined || sel === null) {
+        unanswered++;
+        allOk = false;
+        qEl.classList.add('unanswered');
+        return;
+      }
+
+      // Highlight correct/wrong options
+      q.options.forEach(function(opt, oi) {
+        var lbl = document.getElementById('opt-' + q.id + '-' + oi);
+        if (lbl) lbl.classList.add('disabled-opt');
+        if (opt.correct) {
+          if (lbl) lbl.classList.add('correct-answer');
+        }
+        if (oi === sel && !opt.correct) {
+          if (lbl) lbl.classList.add('wrong-answer');
+        }
+      });
+
+      if (q.options[sel].correct) {
+        correct++;
+        qEl.classList.add('correct');
+      } else {
+        allOk = false;
+        qEl.classList.add('incorrect');
+      }
+
+      // Show explanation
+      expEl.classList.remove('hidden');
+    });
+
+    // Hide submit button
+    var submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) submitBtn.style.display = 'none';
+
+    var resultEl = document.getElementById('quizResult');
+    resultEl.classList.remove('hidden');
+
+    if (unanswered > 0) {
+      // Re-enable radios for unanswered questions and re-show submit
+      mod.quiz.questions.forEach(function(q) {
+        if (answers[q.id] === undefined || answers[q.id] === null) {
+          var radios = document.querySelectorAll('input[name="q_' + q.id + '"]');
+          radios.forEach(function(r) { r.disabled = false; });
+          document.getElementById('qq-' + q.id).classList.remove('unanswered');
+        }
+      });
+      if (submitBtn) submitBtn.style.display = '';
+      resultEl.className = 'quiz-result error';
+      resultEl.innerHTML = '<h4>⚠️ Please answer all questions before submitting.</h4>' +
+        '<p>' + unanswered + ' question' + (unanswered > 1 ? 's are' : ' is') + ' still unanswered.</p>';
+      return;
+    }
+
+    if (allOk) {
+      markComplete(moduleId);
+      renderSidebar();
+      updateProgress();
+
+      var modIndex = MODULES.findIndex(function(m) { return m.id === moduleId; });
+      var isLast   = modIndex === MODULES.length - 1;
+
+      resultEl.className = 'quiz-result success';
+      resultEl.innerHTML = '<h4>✅ Excellent work — all correct!</h4>' +
+        '<p>' + (isLast
+          ? 'You have completed all sections! Proceed to the Final Confirmation to receive your certificate.'
+          : 'This section is now complete. The next section has been unlocked!') +
+        '</p>' +
+        (isLast
+          ? '<button class="btn btn-primary" onclick="showFinalConfirmation()">Proceed to Final Confirmation →</button>'
+          : '<button class="btn btn-primary" onclick="showModule(\'' + MODULES[modIndex + 1].id + '\')">Continue to Next Section →</button>');
+    } else {
+      resultEl.className = 'quiz-result error';
+      resultEl.innerHTML = '<h4>⚠️ ' + correct + ' of ' + mod.quiz.questions.length +
+        ' correct. Review the highlighted questions and explanations.</h4>' +
+        '<p>Read the explanation shown under each question, then try again.</p>' +
+        '<button class="btn btn-secondary" onclick="resetQuiz(\'' + moduleId + '\')">Try Again</button>';
+    }
+  }
+
+  function resetQuiz(moduleId) {
+    pendingAnswers[moduleId] = {};
+    var mod = MODULES.find(function(m) { return m.id === moduleId; });
+    document.getElementById('quizForm').innerHTML = buildQuizHTML(mod);
+    var resultEl = document.getElementById('quizResult');
+    if (resultEl) resultEl.classList.add('hidden');
+  }
+
+  // ── Final Confirmation ─────────────────────────────────────────
+  function showFinalConfirmation() {
+    currentModuleId = 'final';
+    renderSidebar();
+
+    var main  = document.getElementById('mainContent');
+    var done  = confirmationsDone();
+
+    if (done) {
+      main.innerHTML =
+        '<div class="module-header">' +
+        '<span class="module-icon">🏆</span>' +
+        '<div><h2>All Done!</h2>' +
+        '<p class="module-tagline">You\'ve completed the ' + esc(CONFIG.programName) + '</p>' +
+        '</div></div>' +
+        '<p style="margin-bottom:1.5rem">You have reviewed all sections and confirmed your readiness. Your certificate is ready to view and print.</p>' +
+        '<a href="certificate.html" class="btn btn-success btn-large">View &amp; Print Certificate 🎓</a>';
+      return;
+    }
+
+    var confirmHTML = '';
+    FINAL_CONFIRMATIONS.forEach(function(text, i) {
+      confirmHTML +=
+        '<label class="confirmation-item" id="confItem-' + i + '">' +
+        '<input type="checkbox" id="conf-' + i + '" onchange="onConfChange()">' +
+        '<span class="conf-text">' + esc(text) + '</span>' +
+        '</label>';
+    });
+
+    main.innerHTML =
+      '<div class="module-header">' +
+      '<span class="module-icon">📋</span>' +
+      '<div><h2>Final Confirmation</h2>' +
+      '<p class="module-tagline">One last step before your certificate</p>' +
+      '</div></div>' +
+
+      '<p>You have reviewed all ' + MODULES.length + ' sections of the Pre-Arrival Learning Hub. Before generating your certificate, please read and check each of the following:</p>' +
+
+      '<div class="confirmation-list" id="confirmList">' + confirmHTML + '</div>' +
+
+      '<button class="btn btn-success btn-large" id="certBtn" onclick="generateCertificate()" disabled>' +
+      'Generate My Certificate' +
+      '</button>' +
+
+      '<div class="conf-note">' +
+      '<strong>Important:</strong> This certificate confirms that you have reviewed the pre-arrival learning materials. ' +
+      'It does not replace formal EHS laboratory safety clearance, which is a separate process completed in person with your supervising graduate student.' +
+      '</div>';
+    main.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
+
+  function onConfChange() {
+    var total   = FINAL_CONFIRMATIONS.length;
+    var checked = 0;
+    for (var i = 0; i < total; i++) {
+      var el = document.getElementById('conf-' + i);
+      if (el && el.checked) {
+        checked++;
+        var item = document.getElementById('confItem-' + i);
+        if (item) item.classList.add('checked');
+      } else {
+        var item = document.getElementById('confItem-' + i);
+        if (item) item.classList.remove('checked');
+      }
+    }
+    var btn = document.getElementById('certBtn');
+    if (btn) {
+      btn.disabled = (checked < total);
+      btn.textContent = checked < total
+        ? 'Please check all items (' + checked + '/' + total + ' checked)'
+        : 'Generate My Certificate 🎓';
+    }
+  }
+
+  function generateCertificate() {
+    localStorage.setItem('casfer_confirmations_done', 'true');
+    localStorage.setItem('casfer_certificate_date', new Date().toISOString());
+    window.location.href = 'certificate.html';
+  }
+
+  // ── Welcome / resume screen ────────────────────────────────────
+  function showWelcome() {
+    currentModuleId = null;
+    renderSidebar();
+
+    var count = completedCount();
+    var main  = document.getElementById('mainContent');
+
+    if (allModulesDone() && confirmationsDone()) {
+      main.innerHTML =
+        '<div class="welcome-screen">' +
+        '<h2>🎉 Training Complete!</h2>' +
+        '<p class="welcome-sub">You have completed all sections and your certificate is ready.</p>' +
+        '<a href="certificate.html" class="btn btn-success btn-large">View Certificate 🎓</a>' +
+        '</div>';
+      return;
+    }
+
+    var stepsHtml = '';
+    var steps = [
+      { n:1, title:'Watch and read each section', desc:'Work through the videos and reading guides at your own pace.' },
+      { n:2, title:'Pass each section quiz',       desc:'Answer all questions correctly to unlock the next section.' },
+      { n:3, title:'Complete the final check-in',  desc:'Confirm your readiness and download your certificate.' },
+    ];
+    steps.forEach(function(s) {
+      stepsHtml += '<div class="welcome-step">' +
+        '<div class="step-num">' + s.n + '</div>' +
+        '<div class="step-text"><strong>' + s.title + '</strong><span>' + s.desc + '</span></div>' +
+        '</div>';
+    });
+
+    var nextMod = null;
+    for (var i = 0; i < MODULES.length; i++) {
+      if (isUnlocked(i) && !isComplete(MODULES[i].id)) { nextMod = MODULES[i]; break; }
+    }
+
+    main.innerHTML =
+      '<div class="welcome-screen">' +
+      '<h2>Welcome' + (count > 0 ? ' back' : '') + ' to the ' + esc(CONFIG.programName) + '</h2>' +
+      '<p class="welcome-sub">' + CONFIG.programYear + ' · ' + CONFIG.institution + '</p>' +
+      '<div class="welcome-steps">' + stepsHtml + '</div>' +
+      (nextMod
+        ? '<button class="btn btn-primary btn-large" onclick="showModule(\'' + nextMod.id + '\')">' +
+          (count > 0 ? 'Continue: ' + nextMod.title : 'Start: ' + nextMod.title) + ' →</button>'
+        : '') +
+      '</div>';
+  }
+
+  // ── Tiny HTML escape helper ────────────────────────────────────
+  function esc(str) {
+    if (typeof str !== 'string') return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────
+  (function init() {
+    var user = getUser();
+    if (!user) { window.location.href = 'index.html'; return; }
+
+    document.getElementById('headerUserName').textContent = user.firstName;
+    document.getElementById('headerLogoText').textContent = CONFIG.logoText + ' Hub';
+    document.title = CONFIG.programName;
+
+    renderSidebar();
+    updateProgress();
+
+    // Route: show the first incomplete unlocked module, or the welcome screen
+    var resumed = false;
+    for (var i = 0; i < MODULES.length; i++) {
+      if (isUnlocked(i) && !isComplete(MODULES[i].id)) {
+        showModule(MODULES[i].id);
+        resumed = true;
+        break;
+      }
+    }
+    if (!resumed) {
+      if (allModulesDone()) { showFinalConfirmation(); }
+      else                  { showWelcome(); }
+    }
+  })();
+
+  </script>
+</body>
+</html>

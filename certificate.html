@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificate of Completion — CASFER</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="cert-page-body">
+
+  <!-- Page controls (hidden on print) -->
+  <div class="cert-page-header no-print">
+    <h1>Your Certificate</h1>
+    <div class="cert-action-btns">
+      <a href="hub.html" class="btn btn-secondary btn-sm">← Back to Hub</a>
+      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print / Save as PDF</button>
+    </div>
+  </div>
+
+  <div class="no-print" style="font-size:0.82rem; color:#666; max-width:780px; width:100%; margin-bottom:1rem; text-align:center;">
+    To save as a PDF: click "Print / Save as PDF" and choose "Save as PDF" as the destination in your print dialog.
+  </div>
+
+  <!-- ── THE CERTIFICATE ─────────────────────────────────────── -->
+  <div class="certificate" id="certificate">
+    <div class="cert-outer-border">
+      <div class="cert-inner-border">
+
+        <!-- Header row: seal + org name -->
+        <div class="cert-header-row">
+          <div class="cert-seal">
+            <div class="cert-seal-icon">🌱</div>
+            <div class="cert-seal-text">CASFER<br>NSF ERC</div>
+          </div>
+          <div class="cert-org">
+            <div class="cert-org-name" id="certOrgName">CASFER</div>
+            <div class="cert-inst" id="certInst">Texas Tech University</div>
+          </div>
+          <div class="cert-seal" style="background: var(--accent);">
+            <div class="cert-seal-icon">⭐</div>
+            <div class="cert-seal-text">PRE-<br>ARRIVAL</div>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div class="cert-title-block">
+          <div class="cert-of">Certificate</div>
+          <div class="cert-type">of Completion</div>
+        </div>
+
+        <div class="cert-divider"></div>
+
+        <!-- Body -->
+        <div class="cert-body">
+          <p class="cert-presented-to">This certifies that</p>
+          <div class="cert-name" id="certName">Participant Name</div>
+
+          <p class="cert-statement">
+            has reviewed and completed all required sections of the<br>
+            <span class="cert-program-name" id="certProgramName">CASFER Pre-Arrival Learning Hub</span>,<br>
+            <span id="certProgramYear">Summer 2025</span>,
+            demonstrating readiness to begin their summer research placement.
+          </p>
+
+          <!-- Disclaimer box -->
+          <div class="cert-disclaimer">
+            <strong>Note:</strong> This certificate confirms completion of the pre-arrival online learning modules only.
+            Formal laboratory safety clearance (EHS certification and in-person lab orientation) is a
+            separate requirement completed with the supervising graduate student upon arrival.
+            This certificate does not authorize independent laboratory access.
+          </div>
+        </div>
+
+        <!-- Footer row: signatures + date -->
+        <div class="cert-footer-row">
+          <div class="cert-sig">
+            <div class="cert-sig-line"></div>
+            <div class="cert-sig-label">Program Coordinator</div>
+            <div class="cert-sig-label" id="certContactName" style="color: var(--text); font-weight:600; margin-top:0.15rem;"></div>
+          </div>
+          <div class="cert-sig">
+            <div class="cert-sig-line"></div>
+            <div class="cert-sig-label">Supervising Graduate Student</div>
+          </div>
+          <div class="cert-date-block">
+            <div class="cert-sig-label">Date of Completion</div>
+            <span id="certDate">—</span>
+          </div>
+        </div>
+
+      </div><!-- /.cert-inner-border -->
+    </div><!-- /.cert-outer-border -->
+  </div><!-- /.certificate -->
+
+  <div class="no-print" style="margin-top:1.5rem; font-size:0.8rem; color:#888; text-align:center; max-width:780px; width:100%;">
+    Bring this certificate (printed or on your phone) to your Week 1 check-in.
+  </div>
+
+  <script src="content.js"></script>
+  <script>
+    // ── Redirect to hub if not authorized ───────────────────────
+    function getUser() {
+      try { return JSON.parse(localStorage.getItem('casfer_user')); }
+      catch { return null; }
+    }
+    function confirmationsDone() {
+      return localStorage.getItem('casfer_confirmations_done') === 'true';
+    }
+
+    var user = getUser();
+    if (!user) {
+      window.location.href = 'index.html';
+    } else if (!confirmationsDone()) {
+      window.location.href = 'hub.html';
+    } else {
+      // ── Populate certificate fields ────────────────────────────
+      document.getElementById('certName').textContent =
+        user.firstName + ' ' + user.lastName;
+
+      document.getElementById('certProgramName').textContent = CONFIG.programName;
+      document.getElementById('certProgramYear').textContent = CONFIG.programYear;
+      document.getElementById('certOrgName').textContent     = CONFIG.logoText;
+      document.getElementById('certInst').textContent        = CONFIG.institution;
+      document.getElementById('certContactName').textContent = CONFIG.contactName;
+
+      // Certificate date (stored when they clicked "Generate")
+      var rawDate = localStorage.getItem('casfer_certificate_date');
+      if (rawDate) {
+        var d = new Date(rawDate);
+        document.getElementById('certDate').textContent = d.toLocaleDateString('en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
+      }
+
+      document.title = 'Certificate — ' + user.firstName + ' ' + user.lastName + ' — CASFER';
+    }
+  </script>
+</body>
+</html>
