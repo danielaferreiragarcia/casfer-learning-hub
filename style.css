@@ -319,9 +319,21 @@ body.login-page {
   font-size: 0.73rem; font-weight: 700; letter-spacing: 0.06em;
   text-transform: uppercase; margin-bottom: 0.4rem;
 }
-.resource-video  .resource-label { color: var(--accent); }
-.resource-guide  .resource-label { color: var(--primary); }
+.resource-video    .resource-label { color: var(--accent); }
+.resource-guide    .resource-label { color: var(--primary); }
 .resource-download .resource-label { color: #5A3D9A; }
+.resource-paper    .resource-label { color: #0369A1; }
+
+.paper-meta {
+  font-size: 0.875rem; color: var(--text-secondary);
+  margin-bottom: 0.6rem; line-height: 1.5;
+}
+.paper-summary {
+  font-size: 0.875rem; color: var(--text-secondary);
+  background: #F0F7FF; border-left: 3px solid #0369A1;
+  padding: 0.5rem 0.75rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 0.75rem;
+}
 
 .resource-card h4 { font-size: 1rem; margin-bottom: 0.4rem; }
 

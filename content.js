@@ -591,6 +591,19 @@ const MODULES = [
         youtubeId:   "REPLACE_WITH_VIDEO_ID",
         description: "Replace with an overview video about CASFER — a recorded talk, promotional video, or faculty introduction.",
       },
+      // ── SELECTED PAPERS ────────────────────────────────────────
+      // To add more papers: copy one of these blocks and paste it here.
+      // type must be "paper". url should be a DOI link or journal page.
+      {
+        type:    "paper",
+        title:   "Electrochemical organic waste conversion: a route toward food security and a circular economy",
+        authors: "Ferreira-Garcia, D., Haque, S., Burke, B., Furst, A. L., & Botte, G. G.",
+        journal: "Current Opinion in Chemical Engineering",
+        year:    "2025",
+        url:     "https://doi.org/10.1016/j.coche.2025.101156",
+        summary: "This paper explores how electrochemical technologies can convert organic waste into valuable products — including fertilizer precursors — creating a circular economy pathway that directly supports food security. Directly relevant to CASFER's mission of sustainable, distributed nutrient recovery.",
+      },
+
       {
         type:    "guide",
         title:   "Background Reading: Why Fertilizer Recovery Matters",
