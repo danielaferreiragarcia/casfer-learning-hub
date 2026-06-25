@@ -49,7 +49,7 @@ const CONFIG = {
   //   4. Paste it below, replacing  YOUR_FORMSPREE_ID
   //
   // Leave as "YOUR_FORMSPREE_ID" to disable tracking (no emails sent).
-  formspreeId:   "YOUR_FORMSPREE_ID",   // ← REPLACE with your Formspree form ID
+  formspreeId:   "xrewprbb",            // Formspree form ID — do not change
 };
 
 
