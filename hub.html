@@ -263,15 +263,14 @@
 
   function buildVideo(r) {
     var placeholder = !r.youtubeId || r.youtubeId.indexOf('REPLACE') === 0;
-    var embed = placeholder
-      ? '<div class="video-placeholder"><p>📺 Add a YouTube video ID in <strong>content.js</strong> to embed a video here.</p></div>'
-      : '<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/' + r.youtubeId +
-        '?rel=0" frameborder="0" allowfullscreen loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>';
+    if (placeholder) return '';  // don't show unfilled video slots
     return '<div class="resource-card resource-video">' +
            '<div class="resource-label">▶ Video</div>' +
            '<h4>' + esc(r.title) + '</h4>' +
-           '<p>' + esc(r.description) + '</p>' +
-           embed + '</div>';
+           (r.description && r.description.indexOf('Replace') !== 0 ? '<p>' + esc(r.description) + '</p>' : '') +
+           '<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/' + r.youtubeId +
+           '?rel=0" frameborder="0" allowfullscreen loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>' +
+           '</div>';
   }
 
   function buildGuide(r) {
@@ -284,14 +283,12 @@
 
   function buildDownload(r) {
     var isPlaceholder = !r.url || r.url === '#';
-    var btn = isPlaceholder
-      ? '<p class="placeholder-note">⚠️ ' + esc(r.note) + '</p>' +
-        '<button class="btn btn-secondary btn-sm" disabled>Download (link not yet added)</button>'
-      : '<a href="' + r.url + '" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Download ↗</a>';
+    if (isPlaceholder) return '';  // don't show unfilled download slots
     return '<div class="resource-card resource-download">' +
            '<div class="resource-label">📥 Download</div>' +
            '<h4>' + esc(r.title) + '</h4>' +
-           btn + '</div>';
+           '<a href="' + r.url + '" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Download ↗</a>' +
+           '</div>';
   }
 
   // ── Quiz ────────────────────────────────────────────────────────

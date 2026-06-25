@@ -368,13 +368,9 @@ body.login-page {
 .instrument-list dt { font-size: 0.95rem; }
 .instrument-list dd { font-size: 0.9rem; color: var(--text-secondary); }
 
-/* Replace notice */
-.replace-notice {
-  background: #FFF8E6; border: 1px solid #F5C518;
-  border-radius: var(--radius-sm); padding: 0.5rem 0.75rem;
-  font-size: 0.82rem; color: #7A5400; margin-bottom: 0.75rem;
-  font-weight: 600;
-}
+/* Replace notice — hidden from participants */
+.replace-notice { display: none; }
+.placeholder-note { display: none; }
 
 /* Download */
 .placeholder-note {
