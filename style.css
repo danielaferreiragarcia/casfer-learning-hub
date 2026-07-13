@@ -337,6 +337,7 @@ body.login-page {
 .resource-guide    .resource-label { color: var(--primary); }
 .resource-download .resource-label { color: #5A3D9A; }
 .resource-paper    .resource-label { color: #0369A1; }
+.resource-link     .resource-label { color: #7C3AED; }
 
 .paper-meta {
   font-size: 0.875rem; color: var(--text-secondary);

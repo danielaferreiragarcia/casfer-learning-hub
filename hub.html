@@ -69,6 +69,7 @@
   // ── State ──────────────────────────────────────────────────────
   var currentModuleId  = null;
   var pendingAnswers   = {};   // { moduleId: { questionId: optionIndex } }
+  var activeQuestions  = {};   // { moduleId: [selected question objects] }
 
   // ── Storage helpers ────────────────────────────────────────────
   // ── Preview mode — activated by ?preview=true in the URL ─────
@@ -250,7 +251,18 @@
     if (r.type === 'guide')    return buildGuide(r);
     if (r.type === 'download') return buildDownload(r);
     if (r.type === 'paper')    return buildPaper(r);
+    if (r.type === 'link')     return buildLink(r);
     return '';
+  }
+
+  function buildLink(r) {
+    return '<div class="resource-card resource-link">' +
+      '<div class="resource-label">Website</div>' +
+      '<h4>' + esc(r.title) + '</h4>' +
+      (r.description ? '<p>' + esc(r.description) + '</p>' : '') +
+      '<a href="' + esc(r.url) + '" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">' +
+      esc(r.label || 'Visit Website') + ' ↗</a>' +
+      '</div>';
   }
 
   function buildPaper(r) {
@@ -304,9 +316,21 @@
   }
 
   // ── Quiz ────────────────────────────────────────────────────────
+  function pickQuestions(mod) {
+    var pool = mod.quiz.questions.slice();
+    var n = Math.min(mod.quiz.selectN || 4, pool.length);
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
+    return pool.slice(0, n);
+  }
+
   function buildQuizHTML(mod) {
+    var selected = pickQuestions(mod);
+    activeQuestions[mod.id] = selected;
     var html = '';
-    mod.quiz.questions.forEach(function(q, qi) {
+    selected.forEach(function(q, qi) {
       html += '<div class="quiz-question" id="qq-' + q.id + '">';
       html += '<p class="question-text"><strong>Question ' + (qi + 1) + ':</strong> ' + esc(q.text) + '</p>';
       html += '<div class="question-options">';
@@ -337,8 +361,9 @@
     var allOk   = true;
     var correct = 0;
     var unanswered = 0;
+    var questions = activeQuestions[moduleId] || mod.quiz.questions;
 
-    mod.quiz.questions.forEach(function(q) {
+    questions.forEach(function(q) {
       var sel = answers[q.id];
       var qEl = document.getElementById('qq-' + q.id);
       var expEl = document.getElementById('exp-' + q.id);
@@ -387,7 +412,7 @@
 
     if (unanswered > 0) {
       // Re-enable radios for unanswered questions and re-show submit
-      mod.quiz.questions.forEach(function(q) {
+      questions.forEach(function(q) {
         if (answers[q.id] === undefined || answers[q.id] === null) {
           var radios = document.querySelectorAll('input[name="q_' + q.id + '"]');
           radios.forEach(function(r) { r.disabled = false; });
@@ -420,7 +445,7 @@
           : '<button class="btn btn-primary" onclick="showModule(\'' + MODULES[modIndex + 1].id + '\')">Continue to Next Section →</button>');
     } else {
       resultEl.className = 'quiz-result error';
-      resultEl.innerHTML = '<h4>' + correct + ' of ' + mod.quiz.questions.length +
+      resultEl.innerHTML = '<h4>' + correct + ' of ' + questions.length +
         ' correct. Review the highlighted questions and explanations.</h4>' +
         '<p>Read the explanation shown under each question, then try again.</p>' +
         '<button class="btn btn-secondary" onclick="resetQuiz(\'' + moduleId + '\')">Try Again</button>';
