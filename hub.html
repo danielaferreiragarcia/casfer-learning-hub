@@ -11,7 +11,7 @@
   <!-- ── HEADER ─────────────────────────────────────────────────── -->
   <header class="hub-header">
     <a href="index.html" class="hub-logo" title="Home">
-      <div class="hub-logo-icon">🌱</div>
+      <div class="hub-logo-icon">C</div>
       <span class="hub-logo-text" id="headerLogoText">CASFER Hub</span>
     </a>
 
@@ -25,7 +25,7 @@
     </div>
 
     <div class="header-user">
-      <div class="header-user-icon">👤</div>
+      <div class="header-user-icon" id="headerUserInitial"></div>
       <span class="header-user-name" id="headerUserName"></span>
     </div>
 
@@ -116,7 +116,9 @@
       var done     = isComplete(mod.id);
       var unlocked = isUnlocked(i);
       var active   = currentModuleId === mod.id;
-      var icon     = done ? '✅' : (unlocked ? '📖' : '🔒');
+      var icon = done
+        ? '<span class="si-check">✓</span>'
+        : (unlocked ? '<span class="si-num">' + (i + 1) + '</span>' : '<span class="si-lock"></span>');
       var cls      = 'sidebar-item';
       if (done)     cls += ' complete';
       if (!unlocked) cls += ' locked';
@@ -144,7 +146,7 @@
       var cfActive = currentModuleId === 'final';
       if (cfActive) cfCls += ' active';
       html += '<div class="' + cfCls + '" onclick="showFinalConfirmation(); closeSidebar();" role="button" tabindex="0">' +
-              '<span class="sidebar-icon">' + (cfDone ? '🏆' : '📋') + '</span>' +
+              '<span class="sidebar-icon">' + (cfDone ? '<span class="si-check">✓</span>' : '<span class="si-arrow">›</span>') + '</span>' +
               '<div class="sidebar-text">' +
               '<span class="sidebar-title">' + (cfDone ? 'Certificate Ready' : 'Final Confirmation') + '</span>' +
               '<span class="sidebar-time">Get your certificate</span>' +
@@ -200,18 +202,19 @@
     var html = '';
 
     // Header
+    var modNum = MODULES.findIndex(function(m) { return m.id === mod.id; }) + 1;
     html += '<div class="module-header">' +
-            '<span class="module-icon">' + mod.icon + '</span>' +
+            '<div class="module-num-badge">' + String(modNum).padStart(2,'0') + '</div>' +
             '<div>' +
             '<h2>' + esc(mod.title) + '</h2>' +
             '<p class="module-tagline">' + esc(mod.tagline) + '</p>' +
             '</div></div>';
 
     html += '<p class="module-description">' + esc(mod.description) + '</p>';
-    html += '<p class="module-time">⏱ Estimated time: <strong>' + esc(mod.estimatedTime) + '</strong></p>';
+    html += '<p class="module-time">Estimated time: <strong>' + esc(mod.estimatedTime) + '</strong></p>';
 
     if (done) {
-      html += '<div class="completed-banner">✅ You have completed this section!</div>';
+      html += '<div class="completed-banner">Section complete</div>';
     }
 
     // Resources
@@ -222,7 +225,7 @@
     // Quiz
     html += '<div class="quiz-section"><h3>Section Quiz</h3>';
     if (done) {
-      html += '<div class="quiz-complete-banner">✅ Quiz passed — this section is complete.</div>';
+      html += '<div class="quiz-complete-banner">Quiz passed — this section is complete.</div>';
     } else {
       html += '<p class="quiz-instructions">' + esc(mod.quiz.instructions) + '</p>';
       if (PREVIEW) {
@@ -252,7 +255,7 @@
 
   function buildPaper(r) {
     return '<div class="resource-card resource-paper">' +
-      '<div class="resource-label">📄 Research Paper</div>' +
+      '<div class="resource-label">Research Paper</div>' +
       '<h4>' + esc(r.title) + '</h4>' +
       '<p class="paper-meta">' + esc(r.authors) + '<br>' +
       '<em>' + esc(r.journal) + '</em> · ' + esc(r.year) + '</p>' +
@@ -263,9 +266,18 @@
 
   function buildVideo(r) {
     var placeholder = !r.youtubeId || r.youtubeId.indexOf('REPLACE') === 0;
-    if (placeholder) return '';  // don't show unfilled video slots
+    if (placeholder) {
+      return '<div class="resource-card resource-video">' +
+             '<div class="resource-label">Video</div>' +
+             '<h4>' + esc(r.title) + '</h4>' +
+             (r.description && r.description.indexOf('Replace') !== 0 ? '<p>' + esc(r.description) + '</p>' : '') +
+             '<div class="video-placeholder">' +
+             '<div class="video-placeholder-icon">▶</div>' +
+             '<p><strong>Video coming soon</strong>This video will be added before your arrival date.</p>' +
+             '</div></div>';
+    }
     return '<div class="resource-card resource-video">' +
-           '<div class="resource-label">▶ Video</div>' +
+           '<div class="resource-label">Video</div>' +
            '<h4>' + esc(r.title) + '</h4>' +
            (r.description && r.description.indexOf('Replace') !== 0 ? '<p>' + esc(r.description) + '</p>' : '') +
            '<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/' + r.youtubeId +
@@ -275,7 +287,7 @@
 
   function buildGuide(r) {
     return '<div class="resource-card resource-guide">' +
-           '<div class="resource-label">📖 Reading Guide</div>' +
+           '<div class="resource-label">Reading Guide</div>' +
            '<h4>' + esc(r.title) + '</h4>' +
            '<div class="guide-content">' + r.content + '</div>' +
            '</div>';
@@ -285,7 +297,7 @@
     var isPlaceholder = !r.url || r.url === '#';
     if (isPlaceholder) return '';  // don't show unfilled download slots
     return '<div class="resource-card resource-download">' +
-           '<div class="resource-label">📥 Download</div>' +
+           '<div class="resource-label">Download</div>' +
            '<h4>' + esc(r.title) + '</h4>' +
            '<a href="' + r.url + '" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Download ↗</a>' +
            '</div>';
@@ -384,7 +396,7 @@
       });
       if (submitBtn) submitBtn.style.display = '';
       resultEl.className = 'quiz-result error';
-      resultEl.innerHTML = '<h4>⚠️ Please answer all questions before submitting.</h4>' +
+      resultEl.innerHTML = '<h4>Please answer all questions before submitting.</h4>' +
         '<p>' + unanswered + ' question' + (unanswered > 1 ? 's are' : ' is') + ' still unanswered.</p>';
       return;
     }
@@ -398,7 +410,7 @@
       var isLast   = modIndex === MODULES.length - 1;
 
       resultEl.className = 'quiz-result success';
-      resultEl.innerHTML = '<h4>✅ Excellent work — all correct!</h4>' +
+      resultEl.innerHTML = '<h4>All answers correct</h4>' +
         '<p>' + (isLast
           ? 'You have completed all sections! Proceed to the Final Confirmation to receive your certificate.'
           : 'This section is now complete. The next section has been unlocked!') +
@@ -408,7 +420,7 @@
           : '<button class="btn btn-primary" onclick="showModule(\'' + MODULES[modIndex + 1].id + '\')">Continue to Next Section →</button>');
     } else {
       resultEl.className = 'quiz-result error';
-      resultEl.innerHTML = '<h4>⚠️ ' + correct + ' of ' + mod.quiz.questions.length +
+      resultEl.innerHTML = '<h4>' + correct + ' of ' + mod.quiz.questions.length +
         ' correct. Review the highlighted questions and explanations.</h4>' +
         '<p>Read the explanation shown under each question, then try again.</p>' +
         '<button class="btn btn-secondary" onclick="resetQuiz(\'' + moduleId + '\')">Try Again</button>';
@@ -434,7 +446,7 @@
     if (done) {
       main.innerHTML =
         '<div class="module-header">' +
-        '<span class="module-icon">🏆</span>' +
+        '<div class="module-num-badge" style="background:var(--success)">✓</div>' +
         '<div><h2>All Done!</h2>' +
         '<p class="module-tagline">You\'ve completed the ' + esc(CONFIG.programName) + '</p>' +
         '</div></div>' +
@@ -454,7 +466,7 @@
 
     main.innerHTML =
       '<div class="module-header">' +
-      '<span class="module-icon">📋</span>' +
+      '<div class="module-num-badge">→</div>' +
       '<div><h2>Final Confirmation</h2>' +
       '<p class="module-tagline">One last step before your certificate</p>' +
       '</div></div>' +
@@ -559,7 +571,7 @@
     if (allModulesDone() && confirmationsDone()) {
       main.innerHTML =
         '<div class="welcome-screen">' +
-        '<h2>🎉 Training Complete!</h2>' +
+        '<h2>Training Complete</h2>' +
         '<p class="welcome-sub">You have completed all sections and your certificate is ready.</p>' +
         '<a href="certificate.html" class="btn btn-success btn-large">View Certificate 🎓</a>' +
         '</div>';
@@ -610,6 +622,8 @@
 
     document.getElementById('headerUserName').textContent = user.firstName;
     document.getElementById('headerLogoText').textContent = CONFIG.logoText + ' Hub';
+    var initEl = document.getElementById('headerUserInitial');
+    if (initEl) initEl.textContent = user.firstName.charAt(0).toUpperCase();
     document.title = CONFIG.programName;
 
     if (PREVIEW) {
