@@ -43,7 +43,7 @@ const CONFIG = {
   institution:   "Texas Tech University",
   programYear:   "Summer 2025",
   contactEmail:  "casfer@ttu.edu",
-  contactName:   "CASFER Program Coordinator",
+  contactName:   "CASFER Summer Program Coordinator",
   logoText:      "CASFER",
 
   formspreeId:   "xrewprbb",

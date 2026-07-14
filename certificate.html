@@ -26,19 +26,18 @@
     <div class="cert-outer-border">
       <div class="cert-inner-border">
 
-        <!-- Header row: seal + org name -->
+        <!-- Header row: logos + org name + program badge -->
         <div class="cert-header-row">
-          <div class="cert-seal">
-            <div class="cert-seal-icon">🌱</div>
-            <div class="cert-seal-text">CASFER<br>NSF ERC</div>
+          <div class="cert-logos">
+            <img src="images/nsf-erc-logo.png" alt="NSF Engineering Research Center" class="cert-nsf-logo">
+            <img src="images/casfer-logo.png" alt="CASFER" class="cert-casfer-logo">
           </div>
           <div class="cert-org">
-            <div class="cert-org-name" id="certOrgName">CASFER</div>
             <div class="cert-inst" id="certInst">Texas Tech University</div>
           </div>
-          <div class="cert-seal" style="background: var(--accent);">
-            <div class="cert-seal-icon">⭐</div>
-            <div class="cert-seal-text">PRE-<br>ARRIVAL</div>
+          <div class="cert-program-badge">
+            <div class="cert-badge-title">Pre-Arrival</div>
+            <div class="cert-badge-sub">Training Program</div>
           </div>
         </div>
 
@@ -119,7 +118,6 @@
 
       document.getElementById('certProgramName').textContent = CONFIG.programName;
       document.getElementById('certProgramYear').textContent = CONFIG.programYear;
-      document.getElementById('certOrgName').textContent     = CONFIG.logoText;
       document.getElementById('certInst').textContent        = CONFIG.institution;
       document.getElementById('certContactName').textContent = CONFIG.contactName;
 
