@@ -645,7 +645,6 @@
     if (!user) { window.location.href = 'index.html'; return; }
 
     document.getElementById('headerUserName').textContent = user.firstName;
-    document.getElementById('headerLogoText').textContent = CONFIG.logoText + ' Hub';
     var initEl = document.getElementById('headerUserInitial');
     if (initEl) initEl.textContent = user.firstName.charAt(0).toUpperCase();
     document.title = CONFIG.programName;
