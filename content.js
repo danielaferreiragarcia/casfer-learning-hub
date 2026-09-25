@@ -267,6 +267,64 @@ const MODULES = [
         title: "Dilution Reference Sheet (PDF)",
         url:   "#",
       },
+      {
+        type:    "guide",
+        title:   "Practice Experiment: Measuring Density with an Analytical Balance",
+        content: `
+          <p>This is a classic introductory experiment you will likely perform during your first week. Reading through it now — before you arrive — will make the in-person experience much smoother. The goal is to measure the density of two liquids: deionized water and a sodium chloride (NaCl) salt solution.</p>
+
+          <h4>Background</h4>
+          <p>Density is defined as mass divided by volume (d = m / V) and is typically reported in g/mL. Pure water has a density of approximately 1.00 g/mL at room temperature. Dissolving a solid like NaCl in water increases the mass without dramatically changing the volume, so the solution is denser than pure water.</p>
+
+          <h4>Materials</h4>
+          <ul>
+            <li>Analytical balance (accurate to 0.0001 g)</li>
+            <li>50 mL volumetric cylinder or calibrated micropipette</li>
+            <li>Two clean, dry 50 mL beakers</li>
+            <li>Weigh boat or weighing paper</li>
+            <li>Deionized (DI) water</li>
+            <li>Sodium chloride (NaCl) salt</li>
+            <li>Stir rod or magnetic stir bar</li>
+            <li>Lab notebook and pen</li>
+          </ul>
+
+          <h4>Part A: Density of Deionized Water</h4>
+          <ol>
+            <li><strong>Prepare your balance:</strong> Make sure the analytical balance pan is clean and level. Close the draft shield and press TARE to zero it.</li>
+            <li><strong>Tare the beaker:</strong> Place a clean dry beaker on the pan. Close the draft shield. Wait for the reading to stabilize, then press TARE. The display should now read 0.0000 g.</li>
+            <li><strong>Measure your volume:</strong> Using a graduated cylinder or calibrated pipette, measure exactly <strong>10.0 mL</strong> of DI water.</li>
+            <li><strong>Transfer and weigh:</strong> Carefully transfer the 10.0 mL of water into the tared beaker. Close the draft shield and record the mass once the display stabilizes.</li>
+            <li><strong>Calculate density:</strong> density (g/mL) = recorded mass (g) / 10.0 mL</li>
+            <li><strong>Repeat:</strong> Discard the water, dry the beaker, and repeat the measurement two more times (three total replicates).</li>
+            <li><strong>Calculate the average density</strong> across your three measurements.</li>
+          </ol>
+
+          <h4>Part B: Density of a NaCl Solution</h4>
+          <ol>
+            <li><strong>Prepare a 10% (w/v) NaCl solution:</strong> Weigh out 10.0 g of NaCl on a weigh boat using the analytical balance. Transfer to a 100 mL volumetric flask or beaker, add approximately 80 mL of DI water, and stir until fully dissolved. Bring to a final volume of 100.0 mL with DI water.</li>
+            <li><strong>Measure and weigh:</strong> Using the same method as Part A, measure exactly 10.0 mL of the NaCl solution into a tared beaker and record the mass. Perform three replicates.</li>
+            <li><strong>Calculate the average density</strong> of the NaCl solution.</li>
+          </ol>
+
+          <h4>Data Table</h4>
+          <p>Set up your lab notebook entry with two tables — one for each liquid — using these columns: Trial | Mass of liquid (g) | Volume (mL) | Density (g/mL). Below the tables, record the average density and the percent difference from the expected value.</p>
+
+          <h4>Expected Results</h4>
+          <ul>
+            <li><strong>Deionized water:</strong> approximately 0.997–1.000 g/mL at room temperature</li>
+            <li><strong>10% NaCl solution:</strong> approximately 1.065–1.070 g/mL</li>
+          </ul>
+          <p>If your measured values are more than 2% away from these, check your technique: did you tare the balance correctly? Were there air bubbles in the pipette? Was the beaker completely dry before taring?</p>
+
+          <h4>Key Takeaways</h4>
+          <ul>
+            <li>Always tare the balance with your container before adding the substance — this gives you the net mass of the liquid only.</li>
+            <li>Close the draft shield every time before reading the balance display.</li>
+            <li>Replicate measurements (n = 3) are standard practice. A single measurement is never enough.</li>
+            <li>Record every number directly in your lab notebook in real time — not on scratch paper.</li>
+          </ul>
+        `,
+      },
     ],
 
     quiz: {
